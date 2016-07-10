@@ -4,12 +4,6 @@ from datetime import datetime
 from ..model import Trade, BuySellIndicator
 
 
-class TradeInitTestCase(unittest.TestCase):
-
-    def test_init_args(self):
-        pass
-
-
 class TradeTotalPriceTestCase(unittest.TestCase):
 
     value_pairs = (
