@@ -1,10 +1,10 @@
 #! /usr/bin/env python3
 
 import enum
-import datetime
 import abc
 import operator
 
+from datetime import datetime, timedelta
 from functools import reduce
 
 TICKER_SYMBOLS = [
@@ -25,7 +25,7 @@ BuySellIndicator = enum.Enum('BuySellIndicator', ' '.join(BUY_SELL_INDICATORS))
 class Trade:
 
     def __init__(self,
-                 timestamp: datetime.datetime,
+                 timestamp: datetime,
                  quantity: int,
                  price_per_share: float,
                  buy_sell_indicator: BuySellIndicator):
@@ -41,6 +41,8 @@ class Trade:
 
 
 class Stock(abc.ABC):
+
+    price_time_period = timedelta(minutes=15)
 
     @abc.abstractmethod
     def __init__(self,
@@ -70,8 +72,10 @@ class Stock(abc.ABC):
 
     @abc.abstractmethod
     def price(self) -> float:
-        trade_prices = (trade.total_price for trade in self.trades)
-        quantities = (trade.quantity for trade in self.trades)
+        significant_trades = (trade for trade in self.trades
+                              if trade.timestamp >= datetime.now() - self.price_time_period)
+        trade_prices = (trade.total_price for trade in significant_trades)
+        quantities = (trade.quantity for trade in significant_trades)
         return sum(trade_prices) / sum(quantities)
 
 
