@@ -8,19 +8,6 @@ from datetime import datetime, timedelta
 from functools import reduce
 
 
-# Module Constants
-TICKER_SYMBOLS = [
-    'TEA',
-    'POP',
-    'ALE',
-    'GIN',
-    'JOE'
-]
-
-BUY_SELL_INDICATORS = ['BUY', 'SELL', 'NA']
-
-
-# Enumeration types.
 @enum.unique
 class TickerSymbol(enum.Enum):
     """Unique identifier for one of the traded stocks"""
@@ -116,6 +103,9 @@ class Stock(abc.ABC):
     @property
     @abc.abstractmethod
     def ticker_price(self) -> float:
+        """
+        :return: The price per share for the last recorded trade for this stock.
+        """
         return self.trades[-1].price_per_share
 
     @property
@@ -126,11 +116,21 @@ class Stock(abc.ABC):
     @property
     @abc.abstractmethod
     def price_earnings_ratio(self) -> float:
+        """
+        :return: The P/E ratio for this stock
+        """
         return self.ticker_price / self.dividend
 
     @property
     @abc.abstractmethod
     def price(self) -> float:
+        """
+        :return: The average price per share based on trades recorded in the last
+            Stock.price_time_interval.
+        .. note:: Though lean, the way in which significant_trades obtained may be
+            unnecessarily costly, since it traverses all recorded trades and it may
+            be possible to have them already ordered by trade.timestamp.
+        """
         significant_trades = (trade for trade in self.trades
                               if trade.timestamp >= datetime.now() - self.price_time_interval)
         trade_prices = (trade.total_price for trade in significant_trades)
@@ -208,21 +208,29 @@ class PreferredStock(Stock):
 
 class GlobalBeverageCorporationExchange:
 
-    def __init__(self):
-        self.stocks = []
+    """The whole exchange where the trades take place"""
 
-    def add_stock(self, stock: Stock):
-        self.stocks.append(stock)
+    def __init__(self,
+                 stocks: [Stock]):
+        """
+        :param stocks: The stocks traded at this exchange.
+        """
+        self.stocks = stocks
 
     def record_trade(self,
                      ticker_symbol: TickerSymbol,
                      trade: Trade):
+        """Records a trade for the proper stock.
+        :param ticker_symbol: The identifier of the stock.
+        :param trade: The trade to record.
+        """
         stock = next(stock for stock in self.stocks
                      if stock.symbol == ticker_symbol)
         stock.record_trade(trade)
 
     @property
     def all_share_index(self) -> float:
+        """The geometric mean of all stock prices"""
         n = len(self.stocks)
         stock_prices = (stock.price for stock in self.stocks)
         product = reduce(operator.mul, stock_prices, 1)
