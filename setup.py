@@ -7,6 +7,6 @@ setup(
     description="Assignment for the hiring process for a position at J.P.Morgan",
     author="Armand Adroher",
     author_email="aadroher@gmail.com",
-    download_url="http://chardet.feedparser.org/download/python3-chardet-1.0.1.tgz",
+    url="https://github.com/aadroher/super_simple_stocks",
     long_description=open('README.md').read()
 )
