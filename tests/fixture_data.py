@@ -1,7 +1,7 @@
-from ..super_simple_stocks import (TickerSymbol,
-                                   CommonStock,
-                                   PreferredStock,
-                                   BuySellIndicator)
+from super_simple_stocks import (TickerSymbol,
+                                 CommonStock,
+                                 PreferredStock,
+                                 BuySellIndicator)
 
 STOCKS = (
     (TickerSymbol.TEA, CommonStock, 0.0, None, 100.0),
