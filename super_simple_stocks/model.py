@@ -10,7 +10,9 @@ from functools import reduce
 
 @enum.unique
 class TickerSymbol(enum.Enum):
+
     """Unique identifier for one of the traded stocks"""
+
     TEA = 1
     POP = 2
     ALE = 3
@@ -20,7 +22,9 @@ class TickerSymbol(enum.Enum):
 
 @enum.unique
 class BuySellIndicator(enum.Enum):
+
     """Indicator to buy or sell that accompanies each trade"""
+
     BUY = 1
     SELL = 2
 
@@ -74,10 +78,9 @@ class Stock(abc.ABC):
     This is an abstract class that includes the common interface that both common
     and preferred stocks share.
 
-    The class variable Stock.price_time_interval serves as a configuration value to
-    define the length of the time interval that is significant to calculate the stock
-    price.
-
+    .. note:: The class variable Stock.price_time_interval serves as a configuration value to
+        define the length of the time interval that is significant to calculate the stock
+        price.
     """
 
     price_time_interval = timedelta(minutes=15)
@@ -99,8 +102,7 @@ class Stock(abc.ABC):
 
     @abc.abstractmethod
     def record_trade(self, trade: Trade):
-        """
-        Records a trade for this stock.
+        """Records a trade for this stock.
         :param trade: The trade to be recorded
         :raise TypeError:
         :raise ValueError:
@@ -143,7 +145,7 @@ class Stock(abc.ABC):
     @property
     @abc.abstractmethod
     def dividend_yield(self) -> float:
-        pass
+        return self.dividend / self.ticker_price
 
     @property
     @abc.abstractmethod
@@ -175,10 +177,16 @@ class Stock(abc.ABC):
 
 class CommonStock(Stock):
 
+    """A common stock"""
+
     def __init__(self,
                  ticker_symbol: TickerSymbol,
                  par_value: float,
                  last_dividend: float):
+        """
+        :param last_dividend: An absolute value that indicates the last dividend
+            per share for this stock.
+        """
 
         super().__init__(ticker_symbol, par_value)
         self.last_dividend = last_dividend
@@ -196,7 +204,7 @@ class CommonStock(Stock):
 
     @property
     def dividend_yield(self):
-        return self.dividend / self.ticker_price
+        return super().dividend_yield
 
     @property
     def price_earnings_ratio(self):
@@ -209,10 +217,16 @@ class CommonStock(Stock):
 
 class PreferredStock(Stock):
 
+    """A preferred stock"""
+
     def __init__(self,
                  ticker_symbol: TickerSymbol,
                  par_value: float,
                  fixed_dividend: float):
+        """
+        :param fixed_dividend: A decimal number that expresses the fixed dividend
+            as a ratio of the face value of each share.
+        """
 
         super().__init__(ticker_symbol, par_value)
         self.fixed_dividend = fixed_dividend
@@ -230,7 +244,7 @@ class PreferredStock(Stock):
 
     @property
     def dividend_yield(self):
-        return (self.dividend * self.par_value) / self.ticker_price
+        return self.dividend / self.ticker_price
 
     @property
     def price_earnings_ratio(self):
@@ -255,7 +269,6 @@ class GlobalBeverageCorporationExchange:
     def record_trade(self,
                      trade: Trade):
         """Records a trade for the proper stock.
-        :param ticker_symbol: The identifier of the stock.
         :param trade: The trade to record.
         """
         stock = next(stock for stock in self.stocks
@@ -264,7 +277,9 @@ class GlobalBeverageCorporationExchange:
 
     @property
     def all_share_index(self) -> float:
-        """The geometric mean of all stock prices"""
+        """
+        :return: The geometric mean of all stock prices
+        """
         n = len(self.stocks)
         stock_prices = (stock.price for stock in self.stocks)
         product = reduce(operator.mul, stock_prices, 1)

@@ -15,13 +15,6 @@ STOCKS = (
     (TickerSymbol.JOE, CommonStock, 13.0, None, 250.0)
 )
 
-SEED = 1984
-START_TIMESTAMP = datetime.datetime(year=1929,
-                                    month=10,
-                                    day=24,
-                                    hour=9,
-                                    minute=30)
-
 TRADES = (
     (TickerSymbol.TEA, '1929-10-24T09:30:01', 500, 80.0, BuySellIndicator.BUY),
     (TickerSymbol.TEA, '1929-10-24T09:35:00', 2560, 72.0, BuySellIndicator.BUY),

@@ -82,3 +82,11 @@ class StockFactory:
         return next(stock for stock in StockFactory.get_stocks()
                     if stock.dividend == 0)
 
+    @staticmethod
+    def get_common_stock() -> CommonStock:
+        return next(stock for stock in StockFactory.get_stocks()
+                    if isinstance(stock, CommonStock))
+
+
+
+

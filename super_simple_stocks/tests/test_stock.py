@@ -1,11 +1,6 @@
 import unittest
-from datetime import datetime
 
-from ..model import (TickerSymbol,
-                     Stock,
-                     Trade,
-                     BuySellIndicator)
-
+from ..model import TickerSymbol, Stock
 from .factories import StockFactory, TradeFactory
 
 
