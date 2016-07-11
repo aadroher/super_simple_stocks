@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from ..model import (TickerSymbol,
-                     Trade,
-                     Stock,
-                     CommonStock,
-                     PreferredStock)
+from ..super_simple_stocks import (TickerSymbol,
+                                   Trade,
+                                   Stock,
+                                   CommonStock,
+                                   PreferredStock)
 
 
 from .fixture_data import STOCKS, TRADES

@@ -1,6 +1,6 @@
 import unittest
 
-from ..model import Trade
+from ..super_simple_stocks import Trade
 from .factories import TradeFactory
 
 
