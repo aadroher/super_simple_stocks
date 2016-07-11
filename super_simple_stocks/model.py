@@ -30,6 +30,7 @@ class Trade:
     """A change of ownership of a collection of shares at a definite price per share"""
 
     def __init__(self,
+                 ticker_symbol: TickerSymbol,
                  timestamp: datetime,
                  quantity: int,
                  price_per_share: float,
@@ -41,9 +42,21 @@ class Trade:
         :param buy_sell_indicator: Indication to buy or sell
         """
 
+        self.ticker_symbol = ticker_symbol
         self.timestamp = timestamp
-        self.quantity = quantity
-        self.price_per_share = price_per_share
+
+        if quantity > 0:
+            self.quantity = quantity
+        else:
+            msg = "The quantity of shares has to be positive."
+            raise ValueError(msg)
+
+        if price_per_share >= 0.0:
+            self.price_per_share = price_per_share
+        else:
+            msg = "The price per share can not be negative."
+            raise ValueError(msg)
+
         self.buy_sell_indicator = buy_sell_indicator
 
     @property
@@ -71,15 +84,15 @@ class Stock(abc.ABC):
 
     @abc.abstractmethod
     def __init__(self,
-                 symbol: TickerSymbol,
+                 ticker_symbol: TickerSymbol,
                  par_value: float):
         """
-        :param symbol: The symbol that identifies this stock
+        :param ticker_symbol: The ticker_symbol that identifies this stock
         :param par_value: The face value per share for this stock
-        This initializer also creates the instance variable self.trades,
-        which is to hold a list of recorded instances of Trade.
+        .. note:: This initializer also creates the instance variable self.trades,
+            which is to hold a list of recorded instances of Trade.
         """
-        self.symbol = symbol
+        self.ticker_symbol = ticker_symbol
         self.par_value = par_value
 
         self.trades = []
@@ -87,10 +100,19 @@ class Stock(abc.ABC):
     @abc.abstractmethod
     def record_trade(self, trade: Trade):
         """
-        Records a trade for this
+        Records a trade for this stock.
         :param trade: The trade to be recorded
+        :raise TypeError:
+        :raise ValueError:
         """
-        self.trades.append(trade)
+        if not isinstance(trade, Trade):
+            msg = "Argument trade={trade} should be of type Trade.".format(trade=trade)
+            raise TypeError(msg)
+        elif self.ticker_symbol is not trade.ticker_symbol:
+            msg = "Argument trade={trade} does not belong to this stock.".format(trade=trade)
+            raise ValueError(msg)
+        else:
+            self.trades.append(trade)
 
     @property
     @abc.abstractmethod
@@ -104,9 +126,19 @@ class Stock(abc.ABC):
     @abc.abstractmethod
     def ticker_price(self) -> float:
         """
-        :return: The price per share for the last recorded trade for this stock.
+        :return: The price per share for the last recorded trade for this stock
+        :raise AttributeError:
+        .. note:: We don't know if the trades will be registered in chronological order.
+            That is why self.trades is explicitly sorted.
         """
-        return self.trades[-1].price_per_share
+        if len(self.trades) > 0:
+            by_timestamp = sorted(self.trades,
+                                  key=lambda trade: trade.timestamp,
+                                  reverse=True)
+            return by_timestamp[0].price_per_share
+        else:
+            msg = "The last ticker price is not yet available."
+            raise AttributeError(msg)
 
     @property
     @abc.abstractmethod
@@ -119,7 +151,10 @@ class Stock(abc.ABC):
         """
         :return: The P/E ratio for this stock
         """
-        return self.ticker_price / self.dividend
+        if self.dividend != 0:
+            return self.ticker_price / self.dividend
+        else:
+            return None
 
     @property
     @abc.abstractmethod
@@ -141,11 +176,11 @@ class Stock(abc.ABC):
 class CommonStock(Stock):
 
     def __init__(self,
-                 symbol: TickerSymbol,
+                 ticker_symbol: TickerSymbol,
                  par_value: float,
                  last_dividend: float):
 
-        super().__init__(symbol, par_value)
+        super().__init__(ticker_symbol, par_value)
         self.last_dividend = last_dividend
 
     def record_trade(self, trade: Trade):
@@ -175,11 +210,11 @@ class CommonStock(Stock):
 class PreferredStock(Stock):
 
     def __init__(self,
-                 symbol: TickerSymbol,
+                 ticker_symbol: TickerSymbol,
                  par_value: float,
                  fixed_dividend: float):
 
-        super().__init__(symbol, par_value)
+        super().__init__(ticker_symbol, par_value)
         self.fixed_dividend = fixed_dividend
 
     def record_trade(self, trade: Trade):
@@ -218,14 +253,13 @@ class GlobalBeverageCorporationExchange:
         self.stocks = stocks
 
     def record_trade(self,
-                     ticker_symbol: TickerSymbol,
                      trade: Trade):
         """Records a trade for the proper stock.
         :param ticker_symbol: The identifier of the stock.
         :param trade: The trade to record.
         """
         stock = next(stock for stock in self.stocks
-                     if stock.symbol == ticker_symbol)
+                     if stock.symbol == trade.ticker_symbol)
         stock.record_trade(trade)
 
     @property

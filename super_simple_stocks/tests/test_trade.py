@@ -1,25 +1,35 @@
 import unittest
-from datetime import datetime
 
-from ..model import Trade, BuySellIndicator
+from ..model import Trade
+from .factories import TradeFactory
+
+
+class TradeInitTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.trade = TradeFactory.get_trade()
+
+    def test_raises_value_error_on_non_positive_qty(self):
+        with self.assertRaises(ValueError):
+            bad_trade = Trade(ticker_symbol=self.trade.ticker_symbol,
+                              timestamp=self.trade.timestamp,
+                              quantity=0,
+                              price_per_share=self.trade.price_per_share,
+                              buy_sell_indicator=self.trade.buy_sell_indicator)
+
+    def test_raises_value_error_on_negative_price_per_share(self):
+        with self.assertRaises(ValueError):
+            bad_trade = Trade(ticker_symbol=self.trade.ticker_symbol,
+                              timestamp=self.trade.timestamp,
+                              quantity=self.trade.quantity,
+                              price_per_share=-25.0,
+                              buy_sell_indicator=self.trade.buy_sell_indicator)
 
 
 class TradeTotalPriceTestCase(unittest.TestCase):
 
-    value_pairs = (
-        (5000, 0.0),
-        (5000, 27.25)
-    )
-
-    buy_sell_indicator = BuySellIndicator.BUY
-
     def test_total_price_value(self):
 
-        for pair in self.value_pairs:
-            expected_val = pair[0] / pair[1]
-            trade = Trade(datetime.now(),
-                          pair[0],
-                          pair[1],
-                          self.buy_sell_indicator)
-            self.assertEqual(expected_val, trade.total_price)
-
+        trade = TradeFactory.get_trade()
+        expected_value = trade.quantity * trade.price_per_share
+        self.assertEqual(trade.total_price, expected_value)

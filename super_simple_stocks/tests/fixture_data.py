@@ -4,7 +4,8 @@ import datetime
 from typing import Tuple
 from ..model import (TickerSymbol,
                      CommonStock,
-                     PreferredStock)
+                     PreferredStock,
+                     BuySellIndicator)
 
 STOCKS = (
     (TickerSymbol.TEA, CommonStock, 0.0, None, 100.0),
@@ -21,18 +22,16 @@ START_TIMESTAMP = datetime.datetime(year=1929,
                                     hour=9,
                                     minute=30)
 
-def generate_trades_data(n: int) -> [Tuple]:
+TRADES = (
+    (TickerSymbol.TEA, '1929-10-24T09:30:01', 500, 80.0, BuySellIndicator.BUY),
+    (TickerSymbol.TEA, '1929-10-24T09:35:00', 2560, 72.0, BuySellIndicator.BUY),
+    (TickerSymbol.TEA, '1929-10-24T09:41:23', 750, 78.0, BuySellIndicator.BUY),
+    (TickerSymbol.TEA, '1929-10-24T09:53:40', 1750, 77.5, BuySellIndicator.BUY),
+    (TickerSymbol.TEA, '1929-10-24T10:22:38', 250, 81.0, BuySellIndicator.BUY),
+)
 
-    random.seed(SEED)
-    ticker_symbols = (stock_data[0] for stock_data in STOCKS)
 
-    timestamp = START_TIMESTAMP
-    trades_data = []
-    for i in range(n):
-        ticker_symbol = random.choice(ticker_symbol)
-        next_tick_in_ms = random.randrange(10, 2000)
-        timestamp = timestamp + datetime.timedelta(milliseconds=next_tick_in_ms)
-        quantity = random.randrange(25, 5000)
+
 
 
 
