@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 import enum
 import abc
 import operator
@@ -85,7 +83,6 @@ class Stock(abc.ABC):
 
     price_time_interval = timedelta(minutes=15)
 
-    @abc.abstractmethod
     def __init__(self,
                  ticker_symbol: TickerSymbol,
                  par_value: float):
@@ -100,7 +97,6 @@ class Stock(abc.ABC):
 
         self.trades = []
 
-    @abc.abstractmethod
     def record_trade(self, trade: Trade):
         """Records a trade for this stock.
         :param trade: The trade to be recorded
@@ -125,7 +121,6 @@ class Stock(abc.ABC):
         pass
 
     @property
-    @abc.abstractmethod
     def ticker_price(self) -> float:
         """
         :return: The price per share for the last recorded trade for this stock
@@ -143,12 +138,10 @@ class Stock(abc.ABC):
             raise AttributeError(msg)
 
     @property
-    @abc.abstractmethod
     def dividend_yield(self) -> float:
         return self.dividend / self.ticker_price
 
     @property
-    @abc.abstractmethod
     def price_earnings_ratio(self) -> float:
         """
         :return: The P/E ratio for this stock
@@ -158,21 +151,29 @@ class Stock(abc.ABC):
         else:
             return None
 
-    @property
-    @abc.abstractmethod
-    def price(self) -> float:
+    def price(self,
+              current_time: datetime=datetime.now()) -> float:
         """
+        :param current_time: The point of time defined as the current one.
         :return: The average price per share based on trades recorded in the last
-            Stock.price_time_interval.
+            Stock.price_time_interval. None if there are 0 trades that satisfy this
+            condition.
         .. note:: Though lean, the way in which significant_trades obtained may be
             unnecessarily costly, since it traverses all recorded trades and it may
             be possible to have them already ordered by trade.timestamp.
+        .. note:: The existence of the current_time parameter avoids the inner user
+            of datetime.now, thus keeping referential transparency and moving state out.
         """
-        significant_trades = (trade for trade in self.trades
-                              if trade.timestamp >= datetime.now() - self.price_time_interval)
-        trade_prices = (trade.total_price for trade in significant_trades)
-        quantities = (trade.quantity for trade in significant_trades)
-        return sum(trade_prices) / sum(quantities)
+        significant_trades = [trade for trade in self.trades
+                              if trade.timestamp >= current_time - self.price_time_interval]
+
+        if len(significant_trades) > 0:
+            trade_prices = (trade.total_price for trade in significant_trades)
+            quantities = (trade.quantity for trade in significant_trades)
+            return sum(trade_prices) / sum(quantities)
+        else:
+            return None
+
 
 
 class CommonStock(Stock):
@@ -191,28 +192,9 @@ class CommonStock(Stock):
         super().__init__(ticker_symbol, par_value)
         self.last_dividend = last_dividend
 
-    def record_trade(self, trade: Trade):
-        super().record_trade(trade)
-
     @property
     def dividend(self):
         return self.last_dividend
-
-    @property
-    def ticker_price(self):
-        return super().ticker_price
-
-    @property
-    def dividend_yield(self):
-        return super().dividend_yield
-
-    @property
-    def price_earnings_ratio(self):
-        return super().price_earnings_ratio
-
-    @property
-    def price(self):
-        return super().price
 
 
 class PreferredStock(Stock):
@@ -231,28 +213,9 @@ class PreferredStock(Stock):
         super().__init__(ticker_symbol, par_value)
         self.fixed_dividend = fixed_dividend
 
-    def record_trade(self, trade: Trade):
-        super().record_trade(trade)
-
     @property
     def dividend(self):
         return self.fixed_dividend * self.par_value
-
-    @property
-    def ticker_price(self):
-        return super().ticker_price
-
-    @property
-    def dividend_yield(self):
-        return self.dividend / self.ticker_price
-
-    @property
-    def price_earnings_ratio(self):
-        return super().price_earnings_ratio
-
-    @property
-    def price(self):
-        return super().price
 
 
 class GlobalBeverageCorporationExchange:
@@ -263,8 +226,13 @@ class GlobalBeverageCorporationExchange:
                  stocks: [Stock]):
         """
         :param stocks: The stocks traded at this exchange.
+        :raise ValueError:
         """
-        self.stocks = stocks
+        if len(stocks) > 0:
+            self.stocks = stocks
+        else:
+            msg = "Argument stocks={stocks} should be a non empty sequence.".format(stocks=stocks)
+            raise ValueError(msg)
 
     def record_trade(self,
                      trade: Trade):
@@ -272,16 +240,22 @@ class GlobalBeverageCorporationExchange:
         :param trade: The trade to record.
         """
         stock = next(stock for stock in self.stocks
-                     if stock.symbol == trade.ticker_symbol)
+                     if stock.ticker_symbol is trade.ticker_symbol)
         stock.record_trade(trade)
 
-    @property
-    def all_share_index(self) -> float:
+    def all_share_index(self,
+                        current_time: datetime=datetime.now()) -> float:
         """
-        :return: The geometric mean of all stock prices
+        :param current_time: The point of time for which we want to obtain the index.
+        :return: The geometric mean of all stock prices. Returns None if any of them is
+            None.
         """
         n = len(self.stocks)
-        stock_prices = (stock.price for stock in self.stocks)
-        product = reduce(operator.mul, stock_prices, 1)
-        return product**(1/n)
+        stock_prices = [stock.price(current_time) for stock in self.stocks]
+
+        if None in stock_prices:
+            return None
+        else:
+            product = reduce(operator.mul, stock_prices, 1)
+            return product**(1/n)
 

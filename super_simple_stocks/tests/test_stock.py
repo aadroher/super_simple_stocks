@@ -1,4 +1,5 @@
 import unittest
+from datetime import timedelta, datetime
 
 from ..model import TickerSymbol, Stock
 from .factories import StockFactory, TradeFactory
@@ -69,3 +70,64 @@ class StockPriceEarningsRatioTestCase(unittest.TestCase):
         zero_dividend_stock.record_trade(trade)
         pe_ratio = zero_dividend_stock.price_earnings_ratio
         self.assertIsNone(pe_ratio)
+
+
+class StockPriceTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.stock = StockFactory.get_stock()
+
+    def test_not_enough_significant_trades_returns_none(self):
+        trade = TradeFactory.get_trade()
+        self.stock.record_trade(trade)
+
+        stock_price = self.stock.price()
+        self.assertIsNone(stock_price)
+
+    def test_price_value_for_one_trade(self):
+        trade = TradeFactory.get_trade()
+        self.stock.record_trade(trade)
+        current_time = trade.timestamp + timedelta(minutes=10)
+
+        expected_value = trade.price_per_share
+        self.assertEqual(self.stock.price(current_time), expected_value)
+
+    def test_price_value_for_multiple_trades(self):
+        trades = TradeFactory.get_trades_for_stock(TickerSymbol.TEA)
+        for trade in trades:
+            self.stock.record_trade(trade)
+
+        # Set the most recent trade timestamp as current_time.
+        by_timestamp = sorted(trades,
+                              key=lambda t: t.timestamp,
+                              reverse=True)
+
+        last_trade = by_timestamp[0]
+        significant_trades = [trade for trade in trades
+                              if trade.timestamp >=
+                              last_trade.timestamp - self.stock.price_time_interval]
+        trade_prices = (trade.total_price for trade in significant_trades)
+        quantities = (trade.quantity for trade in significant_trades)
+        expected_value = sum(trade_prices) / sum(quantities)
+
+        self.assertEqual(self.stock.price(last_trade.timestamp), expected_value)
+
+
+class CommonStockDividendTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.stock = StockFactory.get_common_stock()
+
+    def test_dividend_value(self):
+        expected_value = self.stock.last_dividend
+        self.assertEqual(self.stock.dividend, expected_value)
+
+
+class PreferredStockDividendTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.stock = StockFactory.get_preferred_stock()
+
+    def test_dividend_value(self):
+        expected_value = self.stock.fixed_dividend * self.stock.par_value
+        self.assertEqual(self.stock.dividend, expected_value)

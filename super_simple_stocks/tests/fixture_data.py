@@ -1,7 +1,3 @@
-import random
-import datetime
-
-from typing import Tuple
 from ..model import (TickerSymbol,
                      CommonStock,
                      PreferredStock,
@@ -21,6 +17,10 @@ TRADES = (
     (TickerSymbol.TEA, '1929-10-24T09:41:23', 750, 78.0, BuySellIndicator.BUY),
     (TickerSymbol.TEA, '1929-10-24T09:53:40', 1750, 77.5, BuySellIndicator.BUY),
     (TickerSymbol.TEA, '1929-10-24T10:22:38', 250, 81.0, BuySellIndicator.BUY),
+    (TickerSymbol.GIN, '1929-10-24T09:45:13', 170, 102.0, BuySellIndicator.BUY),
+    (TickerSymbol.GIN, '1929-10-24T10:10:10', 220, 101.0, BuySellIndicator.BUY),
+    (TickerSymbol.GIN, '1929-10-24T10:12:30', 350, 98.0, BuySellIndicator.BUY),
+    (TickerSymbol.GIN, '1929-10-24T10:13:05', 80, 100.0, BuySellIndicator.BUY),
 )
 
 
