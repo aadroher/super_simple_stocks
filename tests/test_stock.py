@@ -1,7 +1,7 @@
 import unittest
-from datetime import timedelta, datetime
+from datetime import timedelta
 
-from ..super_simple_stocks import TickerSymbol, Stock
+from super_simple_stocks import TickerSymbol, Stock
 from .factories import StockFactory, TradeFactory
 
 

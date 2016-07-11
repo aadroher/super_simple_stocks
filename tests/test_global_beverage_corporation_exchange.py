@@ -1,8 +1,7 @@
 import unittest
 
+from super_simple_stocks import GlobalBeverageCorporationExchange, TickerSymbol
 from .factories import StockFactory, TradeFactory
-
-from ..super_simple_stocks import GlobalBeverageCorporationExchange, TickerSymbol
 
 
 class GlobalBeverageCorporationExchangeInitTestCase(unittest.TestCase):
