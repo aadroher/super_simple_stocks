@@ -1,4 +1,6 @@
 # Super Simple Stocks
 
-The answer to an assignment for the hiring process at a well known bank. 
+This code is the answer to the assignment _Super Simple Stocks_ for the hiring process for the position _Application Developer - 160060895_ at J.P.Morgan.
+
+
 
