@@ -175,7 +175,6 @@ class Stock(abc.ABC):
             return None
 
 
-
 class CommonStock(Stock):
 
     """A common stock"""

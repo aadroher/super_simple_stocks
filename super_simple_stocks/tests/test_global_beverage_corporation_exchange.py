@@ -2,7 +2,7 @@ import unittest
 
 from .factories import StockFactory, TradeFactory
 
-from ..model import GlobalBeverageCorporationExchange, TickerSymbol
+from ..super_simple_stocks import GlobalBeverageCorporationExchange, TickerSymbol
 
 
 class GlobalBeverageCorporationExchangeInitTestCase(unittest.TestCase):
